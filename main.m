@@ -33,9 +33,48 @@ I.data = imread([I.path I.name]);
 figure('Position', [100 100 N M])
 image([1 N], [1 M], I.data);
 
+%% convert image to a matrix of raw bits:
 disp('Converting image to raw bits ...')
 [B, P] = image2bits(I.data);
 
+%% channel coding:
+% Hamming
+m = 3;
+[h,g,n,k] = hammgen(m);
+
+disp(['Hamming polynomial: ' textpoly(gfprimdf(m))])
+
+message_len = M*N*P;
+coded_len   = ceil(message_len*n/k);
+C = zeros(coded_len, L);
+
+extra_len = mod(message_len, k);
+if extra_len ~= 0
+    B = cat(1, B, zeros(extra_len, L));
+end
+
+disp('Hamming encoder ...')
+num_of_blocks = ceil(message_len/k);
+for l = 1:L
+    for b = 1:num_of_blocks
+        C((b-1)*n+1:b*n, l) = mod(B((b-1)*k+1:b*k, l)'*g, 2);
+    end
+end
+
+%% recover image from a matrix of raw bits:
 disp('Converting raw bits to image ...')
-Io = bits2image( B, [M, N], P );
+I_r = bits2image( B, [M, N], P );
+
+if sum(sum(sum(I_r == I.data))) == M*N*L
+    disp('Perfect image recovery!')
+end
+
+
+
+
+
+
+
+
+
 
