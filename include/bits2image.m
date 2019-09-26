@@ -12,11 +12,6 @@ L = size(B, 2);
 M = MN(1);
 N = MN(2);
 
-if M*N ~= size(B,1)/P
-    error(['There is something wrong with the image dimensions. The ' ...
-        'binary matrix does not corresponds to the original image.'])
-end
-
 I = zeros(M, N, L);
 
 for l = 1:L
@@ -27,6 +22,19 @@ for l = 1:L
                          ));
         end
     end
+end
+
+switch P
+    case 8
+        I = uint8(I);
+    case 16
+        I = uint16(I);
+    case 1
+        I = logical(I);
+    otherwise
+        warning(['No matching image conversion. Default to 8-bit ' ...
+            'unsigned integer'])
+        I = uint8(I);
 end
 
 end
