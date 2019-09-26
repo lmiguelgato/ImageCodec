@@ -33,4 +33,9 @@ I.data = imread([I.path I.name]);
 figure('Position', [100 100 N M])
 image([1 N], [1 M], I.data);
 
-B = image2bits(I.data);
+disp('Converting image to raw bits ...')
+[B, P] = image2bits(I.data);
+
+disp('Converting raw bits to image ...')
+Io = bits2image( B, [M, N], P );
+
