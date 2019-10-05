@@ -7,6 +7,8 @@ function I = bits2image( B, MN, P )
 %               channel (e.g. R, G and B).
 %
 % @output:  I, a digital image (three or two-dimensional matrix).
+%           
+% @author:  Luis M. Gato, lmiguelgato@gmail.com
 
 L = size(B, 2);
 M = MN(1);

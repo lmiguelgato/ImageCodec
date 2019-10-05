@@ -8,6 +8,8 @@ function [B, P] = image2bits( I, P )
 % @output:  B, a binary matrix composed of the image into bits.
 %           P, the definitive quantization order (number of bits per pixel)
 %              per channel (e.g. R, G and B).
+%           
+% @author:  Luis M. Gato, lmiguelgato@gmail.com
 
 P_default = 8;
 

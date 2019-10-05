@@ -4,6 +4,8 @@ function T = textpoly( P )
 % @input:   P, a binary vector of polynomial coefficients.
 %
 % @output:  T, the polynomial represented as text.
+%           
+% @author:  Luis M. Gato, lmiguelgato@gmail.com
 
 m = length(P) - 1;
 
