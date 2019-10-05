@@ -1,13 +1,13 @@
 %% @brief:  Final project of Digital Signal Transmission, Master on Digital
 %           Signal Processing, School of Engineering, UNAM, 2019.
-%
+%           
 % @use:     Select a digital image, which will be encoded, contaminated
 %           with noise, and then decoded. The objective is to verify the
 %           performance of some channel coding schemes for error detection 
 %           and error correction. Compare the restored image with the
-%           original, and verify the improvement in signal-to-noise ratio 
+%           original, and verify the improvement in signal-to-noise ratio
 %           and in bit error rate when using channel coding.
-%
+%           
 % @author:  Luis M. Gato, lmiguelgato@gmail.com
 
 %% clean workspace and include dependencies:
@@ -41,31 +41,15 @@ tic;
 [B, P] = image2bits(I.data);
 dt = toc;
 disp([num2str(dt) ' s'])
+message_len = size(B,1);    % M*N*P
 
 %% channel coding:
 % Hamming
-m = 3;                      % the smaller the better error correction, but 
+m = 3;                      % the smaller the better error correction, but
                             % the lower code efficiency
-                            
 disp(['Hamming encoder using polynomial ' textpoly(gfprimdf(m)) ' ...'])
 tic;
-[h,g,n,k] = hammgen(m);
-
-message_len = M*N*P;
-coded_len   = ceil(message_len/k)*n;
-C = zeros(coded_len, L);
-
-% zero padding, if needed:
-extra_len = mod(message_len, k);
-if extra_len ~= 0
-    B = cat(1, B, zeros(k-extra_len, L));
-end
-
-num_of_blocks = ceil(message_len/k);
-for l = 1:L
-    tmp = rem(vec2mat(B(:,l), k)*g, 2)';
-    C(:,l) = tmp(:);
-end
+[B, C, k, n, h, num_of_blocks] = hamming_encoder(m, B);
 dt = toc;
 disp([num2str(dt) ' s'])
 
@@ -81,28 +65,7 @@ disp([num2str(dt) ' s'])
 %% channel decoding:
 disp('Hamming decoder ...')
 tic;
-trt = syndtable(h);         % truth table.
-
-ber_d = 0;
-B_r = zeros(size(B));
-B_d = zeros(size(B));
-pow2vector = flip(2.^(0:m-1))';
-ht = h';
-err_loc = zeros(num_of_blocks, n);
-for l = 1:L
-    tmp = vec2mat(C_r(:,l), n);
-    tmp1 = tmp(:, m+1:n)';
-    B_r(:,l) = tmp1(:);
-    syndrome = rem(tmp * ht, 2);
-    % error location:        
-    err = syndrome * pow2vector;
-    err_loc = trt(err + 1, :);
-    ber_d = ber_d + sum(sum(err_loc));
-    % corrected code
-    ccode = rem(err_loc + tmp, 2);
-    tmp = ccode(:, m+1:n)';
-    B_d(:,l) = tmp(:);
-end
+[B_d, B_r, ber_d] = hamming_decoder(h, C_r);
 ber_d = (numerrs-ber_d)/message_len;
 dt = toc;
 disp([num2str(dt) ' s'])
@@ -124,7 +87,7 @@ else
     image_peak = double((max(max(max(I.data)))).^2);
     mse_i = sum(sum(sum((I.data - I_r).^2)))/image_dim;
     SNR_i = 10*log10(image_peak/mse_i);
-
+    
     if sum(sum(sum(I_d == I.data))) == image_dim
         disp('Perfect image recovery. All errors were corrected!')
         disp(['Input SNR = ' num2str(SNR_i) ' dB'])
