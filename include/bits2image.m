@@ -12,16 +12,11 @@ L = size(B, 2);
 M = MN(1);
 N = MN(2);
 
-I = zeros(M, N, L);
-
+I = zeros(M, ceil(size(B, 1)/M/P), L);
+twos = pow2(P-1:-1:0)';
 for l = 1:L
-    for n = 1:N
-        for m = 1:M
-            I(m, n, l) = bin2dec(char(...
-                            B((n-1)*M*P+(m-1)*P+1:(n-1)*M*P+m*P, l)'+48 ...
-                         ));
-        end
-    end
+    tmp = vec2mat(B(:,l), P);
+    I(:, :, l) = vec2mat(tmp*twos, M)';
 end
 
 switch P
@@ -36,5 +31,7 @@ switch P
             'unsigned integer'])
         I = uint8(I);
 end
+
+I = I(1:M, 1:N, :);
 
 end
