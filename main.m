@@ -17,6 +17,8 @@ clc
 
 addpath('include')
 
+codingScheme = 2;
+
 %% loading and pre-processing image:
 [I.name, I.path] = uigetfile({ '*.jpeg;*.jpg;*.jpe', ...
     'JPEG (*.jpeg, *.jpg, *.jpe)'; '*.bmp;*.dib', ...
@@ -44,14 +46,25 @@ disp([num2str(dt) ' s'])
 message_len = size(B,1);    % M*N*P
 
 %% channel coding:
-% Hamming
-m = 3;                      % the smaller the better error correction, but
-                            % the lower code efficiency
-disp(['Hamming encoder using polynomial ' textpoly(gfprimdf(m)) ' ...'])
-tic;
-[B, C, k, n, h, num_of_blocks] = hamming_encoder(m, B);
-dt = toc;
-disp([num2str(dt) ' s'])
+switch codingScheme
+    case 1
+        % Hamming encoder
+        m = 3;                      % the smaller the better error correction, but
+                                    % the lower code efficiency
+        disp(['Hamming encoder using polynomial ' textpoly(gfprimdf(m)) ' ...'])
+        tic;
+        [B, C, k, n, h, num_of_blocks] = hamming_encoder(m, B);
+        dt = toc;
+        disp([num2str(dt) ' s'])
+    case 2
+        % BCH encoder
+        m = 5;
+        k = 26;       % Message length
+        n = 2^m-1;   % Codeword length
+        disp(['BCH encoder using polynomial ' textpoly(bchgenpoly(n,k)) ' ...'])
+        [B, C, num_of_blocks] = bch_encoder(n, k, B);
+        C = logical(C.x);
+end
 
 %% channel model:
 disp('Modeling channel ...')
@@ -63,12 +76,22 @@ dt = toc;
 disp([num2str(dt) ' s'])
 
 %% channel decoding:
-disp('Hamming decoder ...')
-tic;
-[B_d, B_r, ber_d] = hamming_decoder(h, C_r);
-ber_d = (numerrs-ber_d)/message_len;
-dt = toc;
-disp([num2str(dt) ' s'])
+switch codingScheme
+    case 1
+        disp('Hamming decoder ...')
+        tic;
+        [B_d, B_r, ber_d] = hamming_decoder(h, C_r);
+        ber_d = (numerrs-ber_d)/message_len;
+        dt = toc;
+        disp([num2str(dt) ' s'])
+    case 2
+        disp('BCH decoder ...')
+        tic;
+        [B_d, ber_d] = bch_decoder(n, k, C_r);
+        ber_d = (numerrs-ber_d)/message_len;
+        dt = toc;
+        disp([num2str(dt) ' s'])
+end
 
 %% recover image from a matrix of raw bits:
 disp('Converting raw bits to image ...')
