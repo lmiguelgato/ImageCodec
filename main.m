@@ -17,7 +17,7 @@ clc
 
 addpath('include')
 
-codingScheme = 2;
+codingScheme = 1;   % 1 for Hamming, 2 for BCH
 
 %% loading and pre-processing image:
 [I.name, I.path] = uigetfile({ '*.jpeg;*.jpg;*.jpe', ...
@@ -87,7 +87,7 @@ switch codingScheme
     case 2
         disp('BCH decoder ...')
         tic;
-        [B_d, ber_d] = bch_decoder(n, k, C_r);
+        [B_d, B_r, ber_d] = bch_decoder(n, k, C_r);
         ber_d = (numerrs-ber_d)/message_len;
         dt = toc;
         disp([num2str(dt) ' s'])
