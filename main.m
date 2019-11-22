@@ -17,7 +17,7 @@ clc
 
 addpath('include')
 
-codingScheme = 1;   % 1 for Hamming, 2 for BCH
+codingScheme = 2;   % 1 for Hamming, 2 for BCH
 
 %% loading and pre-processing image:
 [I.name, I.path] = uigetfile({ '*.jpeg;*.jpg;*.jpe', ...
@@ -54,15 +54,22 @@ switch codingScheme
         disp(['Hamming encoder using polynomial ' textpoly(gfprimdf(m)) ' ...'])
         tic;
         [B, C, k, n, h, num_of_blocks] = hamming_encoder(m, B);
+        disp(['Coder efficiency:  ' num2str(k/n)])
         dt = toc;
         disp([num2str(dt) ' s'])
     case 2
         % BCH encoder
         m = 5;
-        k = 26;       % Message length
+        k = 16;       % Message length
         n = 2^m-1;   % Codeword length
+        t = bchnumerr(n,k);
         disp(['BCH encoder using polynomial ' textpoly(bchgenpoly(n,k)) ' ...'])
+        disp(['Error-correction capability:  ' num2str(t)])
+        disp(['Coder efficiency:  ' num2str(k/n)])
+        tic;
         [B, C, num_of_blocks] = bch_encoder(n, k, B);
+        dt = toc;
+        disp([num2str(dt) ' s'])
         C = logical(C.x);
 end
 
@@ -131,10 +138,14 @@ end
 
 figure('units','normalized','outerposition',[0 0 1 1])
 subplot 121
-image([1 N], [1 M], I_r);
+imshow(I_r)
 title(['Without channel coding: BER = ' num2str(pcterrs)])
 
 subplot 122
-image([1 N], [1 M], I_d);
+imshow(I_d)
 title(['With Hamming(' num2str(n) ',' ...
     num2str(k) ') channel coding: BER = ' num2str(ber_d)])
+
+figure
+imshow(I.data)
+title('Original image')
