@@ -16,21 +16,36 @@ num_of_blocks = size(C_r, 1)/n;
 B_d = zeros(num_of_blocks*k, L);
 B_r = zeros(size(B_d));
 t = bchnumerr(n,k);
+m = log2(n+1);
+
+decoded = zeros(num_of_blocks, k);
+cnumerr = zeros(num_of_blocks, 1);
+ccode   = zeros(num_of_blocks, n);
 
 ber_d = 0;
 for l = 1:L
-    for b = 1:num_of_blocks
-        secuencia_codif = C_r((b-1)*n+1:b*n, l);
-        B_r((b-1)*k+1:b*k, l) = secuencia_codif(n-k+1:n);
-        [err,epos] = bermas(secuencia_codif, n, t);
-        ber_d = ber_d + err;
-        if (err ~= -1)
-            for i = 1:err
-                secuencia_codif(epos(i)) = 1 - secuencia_codif(epos(i)); % invertir bits donde se encontro error
-            end
-        end
-        B_d((b-1)*k+1:b*k, l) = secuencia_codif(n-k+1:n);
+    tmp = vec2mat(C_r(:,l), n);
+    tmp1 = tmp(:, 1:k)';
+    B_r(:,l) = tmp1(:);
+    
+    code = gf(tmp, m);    
+    for j = 1 : num_of_blocks
+    
+        % Call to core algorithm BERLEKAMP
+        inputCode    = code(j,:);
+        inputCodeVal = inputCode.x;
+        b            = 1;  % narrow-sense codeword
+        shortened    = 0;  % no shortened codewords
+        inWidth      = length(code(j,:));
+        [decodedInt, cnumerr(j), ccodeInt] = ...
+        berlekamp(inputCodeVal, n, k, m, t, b, shortened, inWidth);
+
+        decoded(j,:) = decodedInt;
+        ccode(j,:)   = ccodeInt;
+        
+        B_d((j-1)*k+1:j*k, l) = decodedInt;
     end
+    ber_d = ber_d + sum(cnumerr);
 end
 
 end
