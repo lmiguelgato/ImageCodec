@@ -26,8 +26,8 @@ coded_len   = ceil(message_len/k)*n;
 C = gf(zeros(coded_len, L));
 
 for l = 1:L
-    tmp = vec2mat(B(:,l)', k);
-    tmp1 = bchenc(gf(tmp), n, k, 'beginning');
+    tmp = vec2mat(B(:,l), k);
+    tmp1 = bchenc(gf(tmp), n, k)';
     C(:, l) = tmp1(:);
 end
 
