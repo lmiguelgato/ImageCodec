@@ -1,4 +1,4 @@
-function [B, P] = image2bits( I, P )
+function [B, Bm, P] = image2bits( I, P )
 % Convert a digital image into raw bits.
 %
 % @input:   I, a digital image (three or two-dimensional matrix).
@@ -31,10 +31,12 @@ end
 
 [M, N, L] = size(I);
 B = zeros(P*M*N, L);
+Bm = zeros(P, M*N, L);
 
 for l = 1:L
     temp = dec2bin(I(:,:,l), P)';
     B(:, l) = temp(:) - 48;
+    Bm(:, :, l) = temp - 48;
 end
 
 end
