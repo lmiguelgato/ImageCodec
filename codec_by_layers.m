@@ -65,7 +65,8 @@ L0 = zeros(P, 1);
 switch codingScheme
     case 1
         % Hamming encoder
-        m = [2 2 2 2 3 3 4 4];
+        %m = [2 2 2 2 3 4 0 0];
+        m = [2 2 2 2 3 3 3 4];
         for p = 1:P
             if m(p) == 0
                 disp(['Layer ' num2str(p) ' left uncoded'])
@@ -87,8 +88,8 @@ switch codingScheme
         end
     case 2
         % BCH encoder
-        m = [6 6  6 5  5  5 0 0 0];
-        k = [7 7 10 6 11 21 0 0 0];     % Message length
+        m = [6 6  6 5  5  5 0 0];
+        k = [7 7 10 6 11 21 0 0];     % Message length
         
         %m = [6 6 6 6 6 0 0 0];
         %k = [7 7 7 7 7 0 0 0];         % Message length
@@ -123,7 +124,13 @@ end
 %% channel model:
 disp('Modeling channel ...')
 tic;
-ber = 1e-1;             % desired bit error rate
+switch codingScheme    
+    case 1
+        ber = 1e-2;             % desired bit error rate
+    case 2
+        ber = 1e-1;             % desired bit error rate
+end
+        
 CL_r = bsc(CL, ber);    % binary symmetric channel
 [numerrs, pcterrs] = count_errors(CL, CL_r); % number of errors, actual ber
 dt = toc;

@@ -49,7 +49,7 @@ message_len = size(B,1);    % M*N*P x 1
 switch codingScheme
     case 1
         % Hamming encoder
-        m = 3;              % the smaller the better error correction, but
+        m = 2;              % the smaller the better error correction, but
                             % the lower code efficiency
         disp(['Hamming encoder using polynomial ' ...
             textpoly(gfprimdf(m)) ' ...'])
@@ -60,8 +60,8 @@ switch codingScheme
         disp([num2str(dt) ' s'])
     case 2
         % BCH encoder
-        m = 6;
-        k = 10;       % Message length
+        m = 5;
+        k = 6;       % Message length
         n = 2^m-1;   % Codeword length
         t = bchnumerr(n,k);
         disp(['BCH encoder using polynomial ' ...
@@ -78,7 +78,12 @@ end
 %% channel model:
 disp('Modeling channel ...')
 tic;
-ber = 1e-1;                             % bit error rate
+switch codingScheme    
+    case 1
+        ber = 1e-2;             % desired bit error rate
+    case 2
+        ber = 1e-1;             % desired bit error rate
+end
 C_r = bsc(C, ber);                      % binary symmetric channel
 [numerrs, pcterrs] = count_errors(C, C_r);    % number of errors and actual ber
 dt = toc;
@@ -112,7 +117,8 @@ disp([num2str(dt) ' s'])
 
 %% display results:
 disp(' ')
-disp('Results:')
+disp('Results:')       
+
 if sum(sum(sum(I_r == I.data))) == image_dim
     disp('Perfect image recovery. No errors found.')
 else
@@ -120,12 +126,31 @@ else
     mse_i = sum(sum(sum((I.data - I_r).^2)))/image_dim;
     SNR_i = 10*log10(image_peak/mse_i);
     
+    figure('units','normalized','outerposition',[0 0 1 1])
+    subplot 121
+    imshow(I_r)
+    title(['Without channel coding: SNR = ' num2str(round(SNR_i)) ...
+                ' dB (BER = ' num2str(pcterrs) ')'])
+    subplot 122
+    imshow(I_d) 
+    
     if sum(sum(sum(I_d == I.data))) == image_dim
         disp('Perfect image recovery. All errors were corrected!')
         disp(['Input SNR = ' num2str(SNR_i) ' dB'])
         disp(' ')
         disp(['Input BER  = ' num2str(pcterrs)])
         disp(['Output BER = ' num2str(ber_d)])
+        
+        subplot 122
+        imshow(I_d)
+        switch codingScheme
+            case 1        
+                title(['Hamming channel coding (by layers): ' ...
+                    'SNR = \infty dB (BER = ' num2str(ber_d) ')'])
+            case 2
+                title(['BCH channel coding (by layers): ' ...
+                    'SNR = \infty dB (BER = ' num2str(ber_d) ')'])
+        end
     else
         mse_o = sum(sum(sum((I.data - I_d).^2)))/image_dim;
         SNR_o = 10*log10(image_peak/mse_o);
@@ -135,24 +160,18 @@ else
         disp(' ')
         disp(['Input BER  = ' num2str(pcterrs)])
         disp(['Output BER = ' num2str(ber_d)])
+        
+        switch codingScheme
+        case 1        
+            title(['With Hamming(' num2str(n) ',' ...
+            num2str(k) ') channel coding: SNR = ' ...
+               num2str(round(SNR_o)) ' dB (BER = ' num2str(ber_d) ')'])
+        case 2
+            title(['With BCH(' num2str(n) ',' ...
+            num2str(k) ') channel coding: SNR = ' ...
+               num2str(round(SNR_o)) ' dB (BER = ' num2str(ber_d) ')'])
+        end
     end
-end
-
-figure('units','normalized','outerposition',[0 0 1 1])
-subplot 121
-imshow(I_r)
-title(['Without channel coding: BER = ' num2str(pcterrs)])
-
-subplot 122
-imshow(I_d)
-
-switch codingScheme
-    case 1        
-        title(['With Hamming(' num2str(n) ',' ...
-        num2str(k) ') channel coding: BER = ' num2str(ber_d)])
-    case 2
-        title(['With BCH(' num2str(n) ',' ...
-        num2str(k) ') channel coding: BER = ' num2str(ber_d)])
 end
 
 figure
