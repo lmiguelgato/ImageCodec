@@ -84,7 +84,7 @@ switch codingScheme
     case 2
         ber = 1e-1;             % desired bit error rate
 end
-C_r = bsc(C, ber);                      % binary symmetric channel
+C_r = bsc(double(C), ber);                      % binary symmetric channel
 [numerrs, pcterrs] = count_errors(C, C_r);    % number of errors and actual ber
 dt = toc;
 disp([num2str(dt) ' s'])
